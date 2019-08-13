@@ -1,0 +1,40 @@
+{
+  "name": "iobroker.vis-codeeditor",
+  "version": "0.0.1",
+  "description": "The package contains a VIS widget to edit json oder xml code using CodeMirror",
+  "author": {
+    "name": "Markus Korporal",
+    "email": "markus@korporal.de"
+  },
+  "homepage": "https://github.com/nobodyMO/ioBroker.vis-codemirror",
+  "license": "MIT",
+  "keywords": [
+    "ioBroker",
+    "Codeeditor",
+    "Smart Home",
+    "home automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nobodyMO/ioBroker.vis-codeeditor"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@iobroker/testing": "^1.2.0",
+    "@types/gulp": "^4.0.6",
+    "axios": "^0.18.0",
+    "gulp": "^4.0.2"
+  },
+  "main": "widgets/codeeditor.html",
+  "name": "iobroker.vis-codeeditor",
+  "scripts": {
+    "test:package": "mocha test/package --exit",
+    "test": "npm run test:package"
+  },
+  "bugs": {
+    "url": "https://github.com/nobodyMO/ioBroker.vis-codeeditor/issues"
+  },
+  "readmeFilename": "README.md"
+  
+}
