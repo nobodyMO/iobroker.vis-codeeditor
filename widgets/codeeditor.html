@@ -1,0 +1,141 @@
+<!--
+    ioBroker.vis treeview Widget-Set
+    version: "0.0.1"
+ 
+    Copyright 2019 nobodyMO markus@korporal.de
+-->
+<!-- here you can include so many css as you want -->
+  <link rel="stylesheet" href="widgets/codeeditor/css/docs.css">
+  <link rel="stylesheet" href="widgets/codeeditor/css/codemirror.css">
+  <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/fold/foldgutter.css" />
+  <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/hint/show-hint.css">
+  <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/lint/lint.css">
+  <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/buttons/buttons.css">
+  <script src="widgets/codeeditor/js/codemirror/codemirror.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/mode/overlay.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/hint/show-hint.js"></script>
+
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/foldcode.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/foldgutter.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/brace-fold.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/indent-fold.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/markdown-fold.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/fold/comment-fold.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/hint/javascript-hint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/mode/javascript/javascript.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/mode/markdown/markdown.js"></script>
+  <script src="widgets/codeeditor/js/jshint/jshint.js"></script>
+  <script src="widgets/codeeditor/js/jsonlint/jsonlint.js"></script>
+  <script src="widgets/codeeditor/js/csslint/csslint.js"></script>
+
+  <script src="widgets/codeeditor/js/codemirror/addon/lint/lint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/lint/javascript-lint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/lint/json-lint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/lint/css-lint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/buttons/buttons.js"></script>
+      
+<script>
+CodeMirror.defineMode("mustachejson", function(config, parserConfig) {
+  var mustacheOverlay = {
+    token: function(stream, state) {
+      var ch;
+      if (stream.match("{{")) {
+        while ((ch = stream.next()) != null)
+          if (ch == "}" && stream.next() == "}") {
+            stream.eat("}");
+            return "mustache";
+          }
+      }
+      while (stream.next() != null && !stream.match("{{", false)) {}
+      return null;
+    }
+  };
+  return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "application/json"), mustacheOverlay);
+});
+
+CodeMirror.defineMode("mustachexml", function(config, parserConfig) {
+  var mustacheOverlay = {
+    token: function(stream, state) {
+      var ch;
+      if (stream.match("{{")) {
+        while ((ch = stream.next()) != null)
+          if (ch == "}" && stream.next() == "}") {
+            stream.eat("}");
+            return "mustache";
+          }
+      }
+      while (stream.next() != null && !stream.match("{{", false)) {}
+      return null;
+    }
+  };
+  return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "application/xml"), mustacheOverlay);
+});
+
+
+</script>
+<!-- here you can include so many js-files as you want -->
+
+<script id="tplCodeeditor"
+        type="text/ejs"
+        class="vis-tpl"
+        data-vis-prev='<img src="widgets/codeeditor/img/codeeditor.png">'
+        data-vis-attrs="oid"		
+        data-vis-set="codeeditor"
+        data-vis-type="val" 
+        data-vis-name="Codeeditor"
+		data-vis-update-style="true"
+		>
+		<div class="vis-widget <%== this.data.attr('class') %>" id="<%= this.data.attr('wid') %>" style="width:<%=  this.data.attr('width') || 300 %>;height:<%=  this.data.attr('height') || 200 %>"
+		data-oid="<%=  this.data.attr('oid') %>"
+		>
+		<textarea id="editor<%= this.data.attr('wid') %>"></textarea>
+<%		  		  
+		vis.binds.codeeditor = {
+			createWidget: function (widgetID, view, data, style) {     
+				var fbobj=this;					
+				var $div = $('#' + widgetID);
+				// if nothing found => wait
+				if (!$div.length) {
+					return setTimeout(function () {fbobj.createWidget(widgetID, view, data, style)}, 100);
+				}
+				
+				fbobj.editor = CodeMirror.fromTextArea(editor<%= this.data.attr('wid') %>, {
+					mode: "mustachejson",
+					lineNumbers: true,
+					lineWrapping: true,
+					extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+					foldGutter: true,
+					gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter","CodeMirror-lint-markers"],
+					lint: true,
+					buttons: [
+						{
+							label: 'Reset',
+							callback: function (cm) {
+							    fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+							}
+						},
+						{
+							label: 'Speichern',
+							callback: function (cm) {
+								vis.setValue(vis.states.attr(data.oid + '.val'),editor.get());
+							}
+						}
+					]
+					
+				  });
+				fbobj.editoreditor.setSize("100%","100%");
+  
+				fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+				if (data.oid) {
+					vis.states.bind(data.oid + '.val', function (e, newVal, oldVal) {
+						fbobj.editor.setValue(newVal);
+					});					
+				}				
+			}
+		};
+			
+        vis.binds.codeeditor.createWidget(this.data.wid, this.view, this.data, this.style);						
+%>		  
+		</div>	
+</script>
+b
