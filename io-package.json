@@ -1,0 +1,64 @@
+{
+    "common": {
+        "name": "vis-codeeditor",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "zh-cn": "首次出版"
+            }
+        },
+        "title": "VIS Codeeditor Widget",
+        "titleLang": {
+            "en": "VIS Codeeditor Widget",
+            "de": "VIS Codeeditor Widget"
+        },
+        "desc": {
+            "en": "Widget for edit and validate code written in json, xml with or without mustache code for e.g. node-red templates. Based on CodeMirror.",
+            "de": "Widget zur Bearbeitung von Code in json, xml mit oder ohne Mustache Tags, die z.B. in node-red templates verwendet werden können. Basiert auf CodeMirror."
+        },
+        "authors": [
+            "Author <markus@korporal.de>"
+        ],
+        "keywords": [
+            "ioBroker",
+            "Codeeditor",
+            "Smart Home",
+            "home automation"
+        ],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "main": "main.js",
+        "icon": "codeeditorWidget.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/nobodyMO/ioBroker.vis-codeeditor/master/admin/codeeditorWidget.png",
+        "readme": "https://github.com/nobodyMO/ioBroker.vis-codeeditor/blob/master/README.md",
+        "loglevel": "info",
+        "restartAdapters": [
+            "vis"
+        ],
+        "localLink": "%web_protocol%://%ip%:%web_port%/vis/edit.html",
+        "onlyWWW": true,
+        "noConfig": true,
+        "singleton": true,
+        "type": "visualization-widgets",
+        "mode": "once",
+        "dependencies": [
+            "vis"
+        ]
+    },
+    "native": {
+        "option1": true,
+        "option2": "42"
+    },
+    "objects": [],
+    "instanceObjects": []
+}
