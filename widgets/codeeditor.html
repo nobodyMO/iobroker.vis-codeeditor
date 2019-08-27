@@ -11,6 +11,11 @@
   <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/hint/show-hint.css">
   <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/lint/lint.css">
   <link rel="stylesheet" href="widgets/codeeditor/js/codemirror/addon/buttons/buttons.css">
+  <style>
+   .editorbutton {
+      width: 7em!important;
+   }
+  </style>
   <script src="widgets/codeeditor/js/codemirror/codemirror.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/mode/overlay.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/hint/show-hint.js"></script>
@@ -23,6 +28,7 @@
   <script src="widgets/codeeditor/js/codemirror/addon/fold/comment-fold.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/hint/javascript-hint.js"></script>
   <script src="widgets/codeeditor/js/codemirror/mode/javascript/javascript.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/mode/xml/xml.js"></script>
   <script src="widgets/codeeditor/js/codemirror/mode/markdown/markdown.js"></script>
   <script src="widgets/codeeditor/js/jshint/jshint.js"></script>
   <script src="widgets/codeeditor/js/jsonlint/jsonlint.js"></script>
@@ -32,11 +38,14 @@
   <script src="widgets/codeeditor/js/codemirror/addon/lint/javascript-lint.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/lint/json-lint.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/lint/css-lint.js"></script>
+  <script src="widgets/codeeditor/js/codemirror/addon/display/panel.js"></script>
   <script src="widgets/codeeditor/js/codemirror/addon/buttons/buttons.js"></script>
-      
+  <script src="widgets/codeeditor/js/codemirror/addon/display/autorefresh.js"></script>
+  <script src="widgets/codeeditor/js/xml-formatter/browser/xml-formatter.js"></script>
+  <script src="widgets/codeeditor/js/json-string-formatter/src/formatter.js"></script>
 <script>
 CodeMirror.defineMode("mustachejson", function(config, parserConfig) {
-  var mustacheOverlay = {
+  var mustachejsonOverlay = {
     token: function(stream, state) {
       var ch;
       if (stream.match("{{")) {
@@ -50,11 +59,11 @@ CodeMirror.defineMode("mustachejson", function(config, parserConfig) {
       return null;
     }
   };
-  return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "application/json"), mustacheOverlay);
+  return CodeMirror.overlayMode(CodeMirror.getMode(config, "application/json"), mustachejsonOverlay);
 });
 
 CodeMirror.defineMode("mustachexml", function(config, parserConfig) {
-  var mustacheOverlay = {
+  var mustachexmlOverlay = {
     token: function(stream, state) {
       var ch;
       if (stream.match("{{")) {
@@ -68,7 +77,7 @@ CodeMirror.defineMode("mustachexml", function(config, parserConfig) {
       return null;
     }
   };
-  return CodeMirror.overlayMode(CodeMirror.getMode(config, parserConfig.backdrop || "application/xml"), mustacheOverlay);
+  return CodeMirror.overlayMode(CodeMirror.getMode(config, "application/xml"), mustachexmlOverlay);
 });
 
 
@@ -79,63 +88,198 @@ CodeMirror.defineMode("mustachexml", function(config, parserConfig) {
         type="text/ejs"
         class="vis-tpl"
         data-vis-prev='<img src="widgets/codeeditor/img/codeeditor.png">'
-        data-vis-attrs="oid"		
+        data-vis-attrs="oid;format/select,JSON,XML,Mustache with JSON,Mustache with XML"		
         data-vis-set="codeeditor"
         data-vis-type="val" 
         data-vis-name="Codeeditor"
 		data-vis-update-style="true"
 		>
-		<div class="vis-widget <%== this.data.attr('class') %>" id="<%= this.data.attr('wid') %>" style="width:<%=  this.data.attr('width') || 300 %>;height:<%=  this.data.attr('height') || 200 %>"
+		<div class="vis-widget <%== this.data.attr('class') %>" id="<%= this.data.attr('wid') %>" style="width:<%=  this.data.attr('width') || "300px" %>;height:<%=  this.data.attr('height') || "200px" %>"
 		data-oid="<%=  this.data.attr('oid') %>"
 		>
-		<textarea id="editor<%= this.data.attr('wid') %>"></textarea>
+		<textarea id="editor" name="editor"></textarea>
 <%		  		  
 		vis.binds.codeeditor = {
-			createWidget: function (widgetID, view, data, style) {     
-				var fbobj=this;					
-				var $div = $('#' + widgetID);
-				// if nothing found => wait
-				if (!$div.length) {
-					return setTimeout(function () {fbobj.createWidget(widgetID, view, data, style)}, 100);
-				}
-				
-				fbobj.editor = CodeMirror.fromTextArea(editor<%= this.data.attr('wid') %>, {
-					mode: "mustachejson",
+			createWidget: function (widgetID, view, data, style) {   
+				const options={
+				  "JSON": {
+					mode: {name: "javascript", json: true},
 					lineNumbers: true,
 					lineWrapping: true,
 					extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
 					foldGutter: true,
 					gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter","CodeMirror-lint-markers"],
 					lint: true,
+					autoRefresh: true,
 					buttons: [
 						{
+							class: 'editorbutton',
+							label: 'Format',
+							callback: function (cm) {
+								
+							    fbobj.editor.setValue(jsonformat(fbobj.editor.getValue()));
+							}
+						},
+						{
+							class: 'editorbutton',
 							label: 'Reset',
 							callback: function (cm) {
 							    fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
 							}
 						},
 						{
+							class: 'editorbutton',
 							label: 'Speichern',
 							callback: function (cm) {
-								vis.setValue(vis.states.attr(data.oid + '.val'),editor.get());
+								console.log ("Speichere Wert" + fbobj.editor.getValue());
+								vis.setValue(data.oid,fbobj.editor.getValue());
 							}
 						}
 					]
 					
-				  });
-				fbobj.editoreditor.setSize("100%","100%");
-  
+				  },
+				  "XML": {
+					mode: "xml",
+					lineNumbers: true,
+					lineWrapping: true,
+					extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+					foldGutter: true,
+					gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter","CodeMirror-lint-markers"],
+					lint: true,
+					autoRefresh: true,
+					buttons: [
+						{
+							class: 'editorbutton',
+							label: 'Format',
+							callback: function (cm) {
+								
+							    fbobj.editor.setValue(xmlformat(fbobj.editor.getValue()));
+							}
+						},
+						{
+							class: 'editorbutton',
+							label: 'Reset',
+							callback: function (cm) {
+							    fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+							}
+						},
+						{
+							class: 'editorbutton',
+							label: 'Speichern',
+							callback: function (cm) {
+								console.log ("Speichere Wert" + fbobj.editor.getValue());
+								vis.setValue(data.oid,fbobj.editor.getValue());
+							}
+						}
+					]
+					
+				  },
+				  "Mustache with JSON":{
+					mode: "mustachejson",
+					lineNumbers: true,
+					lineWrapping: true,
+					extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+					foldGutter: true,
+					gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter","CodeMirror-lint-markers"],
+					lint: false,
+					autoRefresh: true,
+					buttons: [
+						{
+							class: 'editorbutton',
+							label: 'Reset',
+							callback: function (cm) {
+							    fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+							}
+						},
+						{
+							class: 'editorbutton',
+							label: 'Speichern',
+							callback: function (cm) {
+								console.log ("Speichere Wert" + fbobj.editor.getValue());
+								vis.setValue(data.oid,fbobj.editor.getValue());
+							}
+						}
+					]
+					
+				  },
+				  "Mustache with XML":{
+					mode: "mustachexml",
+					lineNumbers: true,
+					lineWrapping: true,
+					extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+					foldGutter: true,
+					gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter","CodeMirror-lint-markers"],
+					lint: false,
+					autoRefresh: true,
+					buttons: [
+						{
+							class: 'editorbutton',
+							label: 'Reset',
+							callback: function (cm) {
+							    fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+							}
+						},
+						{
+							class: 'editorbutton',
+							label: 'Speichern',
+							callback: function (cm) {
+								console.log ("Speichere Wert" + fbobj.editor.getValue());
+								vis.setValue(data.oid,fbobj.editor.getValue());
+							}
+						}
+					]
+					
+				  }
+				};
+				var fbobj=this;	
+				fbobj.widgetID=widgetID;
+
+				var $div = $('#' + widgetID);
+				// if nothing found => wait
+				if (!$div.length) {
+					return setTimeout(function () {fbobj.createWidget(widgetID, view, data, style)}, 100);
+				}
+				console.log("Data-Format:" + data.format);
+  				console.log("DIV Breite:" + $div.width() + " DIV Höhe: " +$div.height());
+				fbobj.editor = CodeMirror.fromTextArea($div.find("textarea")[0], options[data.format]);
+				fbobj.editor.setSize($div.width()-2,$div.height()-18);             
 				fbobj.editor.setValue(vis.states.attr(data.oid + '.val'));
+				fbobj.editor.refresh();
+				function setSize () {
+					if(!$div.is(':visible')){
+					    setTimeout (setSize,100);
+					} else {
+						console.log(fbobj.widgetID + "Visible: DIV Breite:" + $div.width() + " DIV Höhe: " +$div.height());
+						fbobj.editor.setSize($div.width()-2,$div.height()-50);             
+						fbobj.editor.refresh();
+					}
+				
+				}
+				if(!$div.is(':visible')) setSize();
 				if (data.oid) {
 					vis.states.bind(data.oid + '.val', function (e, newVal, oldVal) {
 						fbobj.editor.setValue(newVal);
-					});					
+						fbobj.editor.refresh();
+					});						
 				}				
 			}
 		};
+
+
+			console.log ("initialize resizeable for #" + this.data.wid);		
+			$("#" + this.data.wid).resizable({
+				resize: doResize
+			});
+			
+			function doResize(event, ui) {
+ 				console.log("DIV Breite:" + ui.size.width + " DIV Höhe: " +ui.size.height);
+				fbobj.editor.setSize(ui.size.width-2,ui.size.height-20);
+ 
+				ui.element.find('div.fritzwrapper').css("transform","scale(" + scale +")");
+			};
+
 			
         vis.binds.codeeditor.createWidget(this.data.wid, this.view, this.data, this.style);						
 %>		  
 		</div>	
 </script>
-b
